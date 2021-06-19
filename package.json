@@ -1,0 +1,14 @@
+{
+  "name": "lunatic-web",
+  "collaborators": [
+    "analog-hors <44050761+analog-hors@users.noreply.github.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "lunatic_bg.wasm",
+    "lunatic.js",
+    "lunatic.d.ts"
+  ],
+  "browser": "lunatic.js",
+  "types": "lunatic.d.ts"
+}

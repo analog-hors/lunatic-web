@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+        <script defer src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script defer src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+        <script defer src="./index.js"></script>
+        <link href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" rel="stylesheet">
+        <link href="./index.css" rel="stylesheet">
+        <link href="/favicon.svg" rel="icon" type="image/svg+xml">
+        <title>Lunatic Web</title>
+    </head>
+    <body>
+        <div id="game">
+            <div id="game-history">
+            </div>
+            <div id="board-container">
+                <div id="board">
+                </div>
+                <div id="promotions">
+                    <button data-piece="Q"></button>
+                    <button data-piece="N"></button>
+                    <button data-piece="R"></button>
+                    <button data-piece="B"></button>
+                </div>
+            </div>
+            <div id="right-panel">
+                <div id="p2-eval" class="eval"></div>
+                <button id="new-game">New Game</button>
+                <div id="p1-eval" class="eval"></div>
+            </div>
+            <div id="new-game-panel">
+                <button data-mode="white">White</button>
+                <button data-mode="black">Black</button>
+                <button data-mode="auto">Self play</button>
+            </div>
+        </div>
+    </body>
+</html>
