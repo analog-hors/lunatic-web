@@ -134,5 +134,6 @@
             }
         }
         engine.terminate();
+        await new Promise(r => newGame.onclick = r);
     }
 })();
