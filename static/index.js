@@ -73,7 +73,6 @@
                 engine.onmessage = result => {
                     if (result.data === null) {
                         resolve(prevResult.mv);
-                        engine.onmessage = null;
                     } else {
                         prevResult = result.data;
                             const eval = board.orientation()[0] === color
@@ -114,7 +113,7 @@
         gameHistory.innerText = game.pgn();
         p1Eval.innerText = "";
         p2Eval.innerText = "";
-        gameLoop: while (!game.game_over()) {
+        gameLoop: while (true) {
             const event = await Promise.race([
                 players[game.turn()](game.turn()).then(move => ({ event: "move", move })),
                 new Promise(r => newGame.onclick = () => r({ event: "newGame" }))
@@ -122,6 +121,7 @@
             boardConfig.onDragStart = () => false;
             boardConfig.onDrop = null;
             promotions.style.visibility = "hidden";
+            engine.onmessage = null;
             for (const square of [...boardElement.getElementsByClassName("highlighted")]) {
                 square.classList.remove("highlighted");
             }
@@ -137,12 +137,15 @@
                     board.position(game.fen());
                     gameHistory.innerText = game.pgn();
                     gameHistory.scrollTop = gameHistory.scrollHeight;
+                    if (game.game_over()) {
+                        engine.terminate();
+                        await new Promise(r => newGame.onclick = r);
+                        break gameLoop;
+                    }
                     break;
                 case "newGame":
                     break gameLoop;
             }
         }
-        engine.terminate();
-        await new Promise(r => newGame.onclick = r);
     }
 })();
