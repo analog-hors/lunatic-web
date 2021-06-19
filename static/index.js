@@ -16,6 +16,9 @@
     const p1Eval = document.getElementById("p1-eval");
     const p2Eval = document.getElementById("p2-eval");
     const newGamePanel = document.getElementById("new-game-panel");
+    const moveSound = new Audio("./sounds/move.ogg");
+    const captureSound = new Audio("./sounds/capture.ogg");
+
     while (true) {
         const players = {
             "w": engineMove,
@@ -105,6 +108,7 @@
 
         const engine = new Worker("./lunatic.js");
         await new Promise(r => engine.onmessage = r);
+        boardConfig.onMoveEnd = null;
         engine.onmessage = null;
         board.position(game.fen());
         gameHistory.innerText = game.pgn();
@@ -124,7 +128,12 @@
             
             switch (event.event) {
                 case "move":
-                    game.move(event.move, { sloppy: true })
+                    const moveFlags = game.move(event.move, { sloppy: true }).flags;
+                    boardConfig.onMoveEnd = () => {
+                        (moveFlags.includes("c") ? captureSound : moveSound).play();
+                    };
+                    boardConfig.onSnapEnd = boardConfig.onMoveEnd;
+
                     board.position(game.fen());
                     gameHistory.innerText = game.pgn();
                     gameHistory.scrollTop = gameHistory.scrollHeight;
