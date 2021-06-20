@@ -129,8 +129,10 @@
             switch (event.event) {
                 case "move":
                     const moveFlags = game.move(event.move, { sloppy: true }).flags;
+                    const sound = moveFlags.includes("c") ? captureSound : moveSound;
                     boardConfig.onMoveEnd = () => {
-                        (moveFlags.includes("c") ? captureSound : moveSound).play();
+                        sound.currentTime = 0;
+                        sound.play();
                     };
                     boardConfig.onSnapEnd = boardConfig.onMoveEnd;
 
