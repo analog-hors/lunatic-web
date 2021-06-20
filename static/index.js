@@ -17,8 +17,6 @@
     const p2Eval = document.getElementById("p2-eval");
     const newGamePanel = document.getElementById("new-game-panel");
     const modeButtons = [...document.getElementsByClassName("mode")];
-    const moveSound = new Audio("./sounds/move.ogg");
-    const captureSound = new Audio("./sounds/capture.ogg");
     const thinkTimeElement = document.getElementById("think-time");
     let thinkTime = 3;
     thinkTimeElement.value = thinkTime;
@@ -29,6 +27,21 @@
         }
         thinkTimeElement.value = thinkTime;
     };
+
+    const audioContext = new AudioContext();
+    async function loadAudio(url) {
+        const response = await fetch(url);
+        const buffer = await response.arrayBuffer();
+        return await audioContext.decodeAudioData(buffer);
+    }
+    function playAudio(buffer) {
+        const node = audioContext.createBufferSource();
+        node.connect(audioContext.destination);
+        node.buffer = buffer;
+        node.start();
+    }
+    const moveSound = await loadAudio("./sounds/move.ogg")
+    const captureSound = await loadAudio("./sounds/capture.ogg");
 
     while (true) {
         const players = {
@@ -152,10 +165,7 @@
                 case "move":
                     const moveFlags = game.move(event.move, { sloppy: true }).flags;
                     const sound = moveFlags.includes("c") ? captureSound : moveSound;
-                    boardConfig.onMoveEnd = () => {
-                        sound.currentTime = 0;
-                        sound.play();
-                    };
+                    boardConfig.onMoveEnd = () => playAudio(sound);
                     boardConfig.onSnapEnd = boardConfig.onMoveEnd;
 
                     board.position(game.fen());
