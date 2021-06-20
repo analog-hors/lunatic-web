@@ -16,8 +16,19 @@
     const p1Eval = document.getElementById("p1-eval");
     const p2Eval = document.getElementById("p2-eval");
     const newGamePanel = document.getElementById("new-game-panel");
+    const modeButtons = [...document.getElementsByClassName("mode")];
     const moveSound = new Audio("./sounds/move.ogg");
     const captureSound = new Audio("./sounds/capture.ogg");
+    const thinkTimeElement = document.getElementById("think-time");
+    let thinkTime = 3;
+    thinkTimeElement.value = thinkTime;
+    thinkTimeElement.onchange = () => {
+        const value = Math.max(0, Math.min(99999, parseFloat("0" + thinkTimeElement.value, 10)));
+        if (!isNaN(value)) {
+            thinkTime = value;
+        }
+        thinkTimeElement.value = thinkTime;
+    };
 
     while (true) {
         const players = {
@@ -26,9 +37,9 @@
         };
         await new Promise(resolve => {
             newGamePanel.style.visibility = "visible";
-            for (const newGameButton of newGamePanel.children) {
-                const mode = newGameButton.getAttribute("data-mode");
-                newGameButton.onclick = () => {
+            for (const modeButton of modeButtons) {
+                const mode = modeButton.getAttribute("data-mode");
+                modeButton.onclick = () => {
                     if (mode !== "auto") {
                         board.orientation(mode);
                         players[mode[0]] = playerMove;
@@ -98,7 +109,7 @@
                     }
                 };
                 engine.postMessage({
-                    time_left: 75_000,
+                    think_time: Math.round(thinkTime * 1000),
                     init_pos: START_POS,
                     moves: game.history({ verbose: true }).map(m => m.from + m.to + (m.promotion ?? ""))
                 });
