@@ -86,16 +86,27 @@
                         resolve(prevResult.mv);
                     } else {
                         prevResult = result.data;
-                            const eval = board.orientation()[0] === color
+                        const eval = board.orientation()[0] === color
                             ? p1Eval
                             : p2Eval;
-                        eval.innerText = [
-                            "Eval:  " + prevResult.value,
-                            "Depth: " + prevResult.depth,
-                            "Nodes: " + prevResult.nodes,
-                            "Time:  " + prevResult.time.toFixed(2) + "s",
-                            "NPS:   " + (prevResult.nodes / prevResult.time).toFixed(2)
-                        ].join("\n");
+                        switch (prevResult.type) {
+                            case "Engine":
+                                eval.innerText = [
+                                    "Type:   Engine",
+                                    "Eval:   " + prevResult.value,
+                                    "Depth:  " + prevResult.depth,
+                                    "Nodes:  " + prevResult.nodes,
+                                    "Time:   " + prevResult.time.toFixed(2) + "s",
+                                    "NPS:    " + (prevResult.nodes / prevResult.time).toFixed(2)
+                                ].join("\n");
+                                break;
+                            case "Book":
+                                eval.innerText = [
+                                    "Type:   Book",
+                                    "Weight: " + prevResult.weight
+                                ].join("\n")
+                                break;
+                        }
                         const from = prevResult.mv.slice(0, 2);
                         const to = prevResult.mv.slice(2, 4);
                         for (const square of [...boardElement.getElementsByClassName("highlighted")]) {
@@ -139,6 +150,7 @@
             
             switch (event.event) {
                 case "move":
+                    console.log(event.move);
                     const moveFlags = game.move(event.move, { sloppy: true }).flags;
                     const sound = moveFlags.includes("c") ? captureSound : moveSound;
                     boardConfig.onMoveEnd = () => {

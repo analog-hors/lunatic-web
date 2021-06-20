@@ -31,6 +31,11 @@ serde = { version = "1", features = ["derive"] }
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 js-sys = "0.3"
 
+[dependencies.chess-polyglot-reader]
+git = "https://github.com/analog-hors/chess-polyglot-reader"
+rev = "4f13c74"
+features = ["chess_lib_helpers"]
+
 [profile.release.build-override]
 opt-level = 3
 

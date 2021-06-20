@@ -1,4 +1,5 @@
 use std::time::Duration;
+use std::io::Cursor;
 
 use js_sys::Reflect;
 use wasm_bindgen::prelude::*;
@@ -8,6 +9,8 @@ use chess::*;
 use serde::{Serialize, Deserialize, Deserializer};
 use lunatic::engine::*;
 use lunatic::time::*;
+use lunatic::evaluator::*;
+use chess_polyglot_reader::{PolyglotReader, PolyglotKey};
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
@@ -17,6 +20,9 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(message: &str);
+
+    #[wasm_bindgen(js_namespace = Math)]
+    fn random() -> f64;
 }
 
 #[cfg(debug_assertions)]
@@ -69,29 +75,42 @@ extern "C" {
     fn post_message(message: JsValue);
 }
 
-fn post_search_result(result: &SearchResult, time: Duration) {
-    #[derive(Serialize)]
-    pub struct SerializableSearchResult {
-        pub mv: String,
-        pub value: String,
-        pub nodes: u32,
-        pub depth: u8,
-        pub principal_variation: Vec<String>,
-        pub transposition_table_size: usize,
-        pub transposition_table_entries: usize,
-        pub time: f64
+#[derive(Serialize)]
+#[serde(tag = "type")]
+enum JsSearchResult {
+    Book {
+        mv: String,
+        weight: u16
+    },
+    Engine {
+        mv: String,
+        value: String,
+        nodes: u32,
+        depth: u8,
+        principal_variation: Vec<String>,
+        transposition_table_size: usize,
+        transposition_table_entries: usize,
+        time: f64
     }
-    let result = SerializableSearchResult {
-        mv: result.mv.to_string(),
-        value: format!("{}", result.value),
-        nodes: result.nodes,
-        depth: result.depth,
-        principal_variation: result.principal_variation
-            .iter().map(|mv| mv.to_string()).collect(),
-        transposition_table_size: result.transposition_table_size,
-        transposition_table_entries: result.transposition_table_entries,
-        time: time.as_secs_f64()
-    };
+}
+
+impl JsSearchResult {
+    fn from_result(result: &SearchResult, time: Duration) -> Self {
+        Self::Engine {
+            mv: result.mv.to_string(),
+            value: format!("{}", result.value),
+            nodes: result.nodes,
+            depth: result.depth,
+            principal_variation: result.principal_variation
+                .iter().map(|mv| mv.to_string()).collect(),
+            transposition_table_size: result.transposition_table_size,
+            transposition_table_entries: result.transposition_table_entries,
+            time: time.as_secs_f64()
+        }
+    }
+}
+
+fn post_search_result(result: &JsSearchResult) {
     post_message(JsValue::from_serde(&result).unwrap());
 }
 
@@ -114,7 +133,9 @@ impl LunaticHandler for Handler {
 
     fn search_result(&mut self, result: SearchResult) {
         let now = Date::now() as u64;
-        post_search_result(&result, Duration::from_millis(now - self.start_time));
+        post_search_result(&JsSearchResult::from_result(
+            &result, Duration::from_millis(now - self.start_time)
+        ));
         let elapsed = Duration::from_millis(now - self.last_update);
         self.time_left = self.time_manager.update(result, elapsed);
         self.last_update = now;
@@ -125,7 +146,47 @@ impl LunaticHandler for Handler {
 pub fn main() {
     #[cfg(feature = "console_error_panic_hook")]
     console_error_panic_hook::set_once();
+
+    const OPENINGS: &'static [u8] = include_bytes!("openings-8ply-10k.bin");
+    
     on_new_search(|args| {
+        let mut reader = PolyglotReader::new(Cursor::new(OPENINGS)).unwrap();
+        let mut board = args.init_pos;
+        for &mv in &args.moves {
+            board = board.make_move_new(mv);
+        }
+        let key = PolyglotKey::from_board(&board);
+        let entries = reader.get(&key).unwrap();
+        let total: i32 = entries.iter().map(|e| e.weight as i32).sum();
+        let mut value = (random() * total as f64) as i32;
+        for mut entry in entries {
+            value -= entry.weight as i32;
+            if value < 0 {
+                if matches!(entry.mv.source.into(), Square::E1 | Square::E8) {
+                    let is_castle = match entry.mv.dest.into() {
+                        Square::H1 => key.white_castle.king_side,
+                        Square::A1 => key.white_castle.queen_side,
+                        Square::H8 => key.black_castle.king_side,
+                        Square::A8 => key.black_castle.queen_side,
+                        _ => false
+                    };
+                    if is_castle {
+                        if entry.mv.dest.file < entry.mv.source.file {
+                            entry.mv.dest.file += 1;
+                        } else {
+                            entry.mv.dest.file -= 1;
+                        }
+                    }
+                }
+                post_search_result(&JsSearchResult::Book {
+                    mv: format!("{}", ChessMove::from(entry.mv)),
+                    weight: entry.weight
+                });
+                post_message(JsValue::NULL);
+                return;
+            }
+        }
+
         let think_time = Duration::from_millis(args.think_time);
         let now = Date::now() as u64;
         let handler = Handler {
