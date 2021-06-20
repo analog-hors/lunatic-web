@@ -30,9 +30,16 @@
                 <div id="p1-eval" class="eval"></div>
             </div>
             <div id="new-game-panel">
-                <button data-mode="white">White</button>
-                <button data-mode="black">Black</button>
-                <button data-mode="auto">Self play</button>
+                <button class="mode" data-mode="white">White</button>
+                <button class="mode" data-mode="black">Black</button>
+                <button class="mode" data-mode="auto">Self play</button>
+                <div id="think-time-container">
+                    <label>
+                        Think time:
+                        <input id="think-time" type="text">
+                        seconds
+                    </label>
+                </div>
             </div>
         </div>
     </body>

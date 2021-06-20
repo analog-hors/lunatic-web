@@ -31,7 +31,7 @@ macro_rules! console_log {
 
 #[derive(Deserialize)]
 struct SearchArgs {
-    time_left: u64,
+    think_time: u64,
     #[serde(deserialize_with = "deserialize_board")]
     init_pos: Board,
     #[serde(deserialize_with = "deserialize_moves")]
@@ -126,10 +126,10 @@ pub fn main() {
     #[cfg(feature = "console_error_panic_hook")]
     console_error_panic_hook::set_once();
     on_new_search(|args| {
-        let time_left = Duration::from_millis(args.time_left);
+        let think_time = Duration::from_millis(args.think_time);
         let now = Date::now() as u64;
         let handler = Handler {
-            time_manager: StandardTimeManager::new(time_left, 0.04, Duration::ZERO),
+            time_manager: StandardTimeManager::new(Duration::ZERO, 0.0, think_time),
             last_update: now,
             time_left: Duration::MAX,
             start_time: now
