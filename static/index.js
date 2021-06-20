@@ -150,7 +150,6 @@
             
             switch (event.event) {
                 case "move":
-                    console.log(event.move);
                     const moveFlags = game.move(event.move, { sloppy: true }).flags;
                     const sound = moveFlags.includes("c") ? captureSound : moveSound;
                     boardConfig.onMoveEnd = () => {
