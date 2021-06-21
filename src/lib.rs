@@ -123,12 +123,7 @@ struct Handler {
 
 impl LunaticHandler for Handler {
     fn time_up(&mut self) -> bool {
-        if Duration::from_millis(Date::now() as u64 - self.last_update) > self.time_left {
-            post_message(JsValue::NULL);
-            true
-        } else {
-            false
-        }
+        Duration::from_millis(Date::now() as u64 - self.last_update) > self.time_left
     }
 
     fn search_result(&mut self, result: SearchResult) {
@@ -201,6 +196,7 @@ pub fn main() {
             args.moves,
             SearchOptions::default()
         ).search();
+        post_message(JsValue::NULL);
     });
     post_message(JsValue::NULL);
 }
