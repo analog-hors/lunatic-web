@@ -267,9 +267,6 @@ async function init(input) {
     }
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbg_postMessage_f56cb8ed326d2e9d = function(arg0) {
-        postMessage(takeObject(arg0));
-    };
     imports.wbg.__wbindgen_json_parse = function(arg0, arg1) {
         var ret = JSON.parse(getStringFromWasm0(arg0, arg1));
         return addHeapObject(ret);
@@ -290,6 +287,9 @@ async function init(input) {
         takeObject(arg0);
     };
     imports.wbg.__wbg_random_0cf32cae68435137 = typeof Math.random == 'function' ? Math.random : notDefined('Math.random');
+    imports.wbg.__wbg_postMessage_f56cb8ed326d2e9d = function(arg0) {
+        postMessage(takeObject(arg0));
+    };
     imports.wbg.__wbg_addEventListener_2cec7bbf9f3d7e8c = function(arg0, arg1, arg2) {
         addEventListener(getStringFromWasm0(arg0, arg1), getObject(arg2));
     };
