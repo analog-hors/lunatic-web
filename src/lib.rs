@@ -7,9 +7,8 @@ use js_sys::Date;
 
 use chess::*;
 use serde::{Serialize, Deserialize, Deserializer};
-use lunatic::engine::*;
+use lunatic::search::*;
 use lunatic::time::*;
-use lunatic::evaluator::*;
 use chess_polyglot_reader::{PolyglotReader, PolyglotKey};
 
 #[cfg(feature = "wee_alloc")]
